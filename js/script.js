@@ -27,12 +27,25 @@ text_options_form.addEventListener("submit", function(event) {
 		
 		var section = subtitles[i],
 		lines       = section.split("\n"),
-		times       = lines[1].split(" --> ");
+		times       = lines[1].split(" --> "),
+		out      = [];
 
-		times[0] = times[0].replace(/\d+:(\d+):(\d+),\d+/, replaceTime);
-		times[1] = times[1].replace(/\d+:(\d+):(\d+),\d+/, replaceTime);
+		times.forEach(function (t) {
+			var subSec = t.split(",").pop();
 
-		times    = times.join(" --> ");
+			t = t.split(":");
+
+			var hours = t[0] * (3600), 
+			min       = t[1] * (60),
+			sec       = parseInt(t[2], 10),
+			total     = hours + min + sec;
+
+			total = total - parseInt(seconds.value, 10);
+
+			out.push(SecondsTohhmmss(total) + "," + subSec);
+		});
+
+		times    = out.join(" --> ");
 		lines[1] = times;
 
 		output[i] = lines.join("\n");
@@ -50,24 +63,18 @@ text_options_form.addEventListener("submit", function(event) {
 	);
 }, false);
 
-function replaceTime (match, p1, p2, offset, string) {
-	var adjust = parseInt(p2, 10) - parseInt(seconds.value, 10)
-		str = '';
-	if(adjust < 0) {
-		var min = (adjust < -10) ? parseInt(p1, 10) - 2 : parseInt(p1, 10) - 1;
-		if(min < 10) {
-			min = "0"+min;
-		}
+var SecondsTohhmmss = function(totalSeconds) {
+  var hours   = Math.floor(totalSeconds / 3600);
+  var minutes = Math.floor((totalSeconds - (hours * 3600)) / 60);
+  var seconds = totalSeconds - (hours * 3600) - (minutes * 60);
 
-		adjust = 60 - Math.abs(adjust);
-		min = ":" + min + ":";
-		string = string.replace(/:(\d+):/, min);
-	} else if(adjust < 10) {
-		adjust = "0"+adjust;
-	}
+  // round seconds
+  seconds = Math.round(seconds * 100) / 100
 
-	str = ":" + adjust + ",";
-	return string.replace(/:(\d+),/, str);
+  var result = (hours < 10 ? "0" + hours : hours);
+      result += ":" + (minutes < 10 ? "0" + minutes : minutes);
+      result += ":" + (seconds  < 10 ? "0" + seconds : seconds);
+  return result;
 }
 
 })(self);
